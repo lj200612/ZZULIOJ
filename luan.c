@@ -1,18 +1,30 @@
 #include<stdio.h>
 
-int ProductOdd(int begin, int end) {
-    int productOdd = 1;  
-    for (int i = begin; i <= end; i++) { 
-        if (i % 2 != 0) {  // 检查是否为奇数
-            productOdd *= i;  // 累乘奇数
+int main() {
+    int a[10];
+    for (int i = 0; i < 10; i++) {
+        scanf("%d",&a[i]);
+    }
+
+    int min = a[0];
+    for(int i = 1 ; i < 10;i++){
+        if(a[i] < min){
+            min = a[i];
         }
     }
-    return productOdd;  // 返回结果
-}
 
-int main() {
-    int a, b;
-    scanf("%d%d", &a, &b);  // 输入区间
-    printf("ProductOdd = %d\n", ProductOdd(a, b));  // 输出计算结果
+    int max = a[0];
+    for(int i = 1 ; i < 10;i++){
+        if(a[i] > max){
+            max = a[i];
+        }
+    }
+    int avg, sum=0;
+    for(int i = 0 ; i < 10;i++){
+         sum = sum + a[i];
+         avg = sum / 10;
+    }
+    printf ("%d %d %d",max, min, avg);
+
     return 0;
 }

@@ -1,16 +1,15 @@
 #include<stdio.h>
 void insert(int a[], int n, int num) {
-    int i, j;
-    for(int i = 0; i < n; i++) {
+    int i;
+    for(i = 0; i < n; i++) {
         if (a[i] >= num) {
             break;
         }
-        
-        for (int j = n; j > i; j--) {
+    }
+    for (int j = n; j > i; j--) {
                 a[j] = a[j-1];
             }
-            a[i] = num;
-    }
+    a[i] = num;
 }
 
 

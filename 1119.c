@@ -1,14 +1,14 @@
 #include <stdio.h>
 
 
-void sort(int a[], int n) {
-    for (int i = 0; i < n - 1; i++) {
-        for (int j = 0; j < n - i - 1; j++) {
-            if (a[j] > a[j + 1]) {
-                
+void sort(int a[], int n){
+    for(int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (a[i] > a[j]) {
                 int temp = a[j];
-                a[j] = a[j + 1];
-                a[j + 1] = temp;
+                a[j] = a[i];
+                a[i] = temp;
+                
             }
         }
     }
