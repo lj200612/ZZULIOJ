@@ -1,178 +1,248 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
 
-#define MAX_STUDENTS 100
-#define MAX_NAME_LENGTH 50
-#define MAX_MAJOR_LENGTH 50
+#define N 10000  // Maximum number of students
+#define ID_LENGTH 12
 
-struct Student {
-    int id;
-    char name[MAX_NAME_LENGTH];
-    int age;
-    char major[MAX_MAJOR_LENGTH];
-    float score;
-};
+typedef struct student {
+    char ID[ID_LENGTH + 1];  
+    char name[20];           
+    char sex;                
+    double score[5];         
+    double total;            
+    double avg;              
+} STU;
 
-// 自动保存学生信息到文件
-void autoSaveToFile(struct Student students[], int count, const char *filename) {
-    FILE *file = fopen(filename, "wb");
-    if (file == NULL) {
-        printf("无法打开文件进行写入。\n");
-        return;
+// Function to validate ID
+int isValidID(char *id) {
+    if (strlen(id) != ID_LENGTH) return 0;
+    for (int i = 0; i < ID_LENGTH; i++) {
+        if (!isdigit(id[i])) return 0;
     }
-    fwrite(&count, sizeof(int), 1, file);
-    fwrite(students, sizeof(struct Student), count, file);
-    fclose(file);
+    return 1;
 }
 
-// 自动从文件中加载学生信息
-void autoLoadFromFile(struct Student students[], int *count, const char *filename) {
-    FILE *file = fopen(filename, "rb");
-    if (file == NULL) {
-        printf("无法读取文件或文件不存在，新建空文件。\n");
-        *count = 0;
-        return;
-    }
-    fread(count, sizeof(int), 1, file);
-    fread(students, sizeof(struct Student), *count, file);
-    fclose(file);
-    printf("学生信息已从文件加载。\n");
-}
-
-// 添加学生
-void addStudent(struct Student students[], int *count) {
-    if (*count >= MAX_STUDENTS) {
-        printf("学生数量已达上限，无法添加新学生。\n");
-        return;
-    }
-    printf("请输入学生ID: ");
-    scanf("%d", &students[*count].id);
-    printf("请输入学生姓名: ");
-    scanf("%s", students[*count].name);
-    printf("请输入学生年龄: ");
-    scanf("%d", &students[*count].age);
-    printf("请输入学生专业: ");
-    scanf("%s", students[*count].major);
-    printf("请输入学生成绩: ");
-    scanf("%f", &students[*count].score);
-    (*count)++;
-    printf("学生信息已添加。\n");
-}
-
-// 显示所有学生
-void displayStudents(struct Student students[], int count) {
-    if (count == 0) {
-        printf("没有学生记录。\n");
-        return;
-    }
-    for (int i = 0; i < count; i++) {
-        printf("学生ID: %d, 姓名: %s, 年龄: %d, 专业: %s, 成绩: %.2f\n", 
-               students[i].id, students[i].name, students[i].age, students[i].major, students[i].score);
-    }
-}
-
-// 查找学生
-void searchStudent(struct Student students[], int count) {
-    if (count == 0) {
-        printf("没有学生记录。\n");
-        return;
-    }
-    int searchId;
-    printf("请输入要查找的学生ID: ");
-    scanf("%d", &searchId);
-    for (int i = 0; i < count; i++) {
-        if (students[i].id == searchId) {
-            printf("找到学生 - ID: %d, 姓名: %s, 年龄: %d, 专业: %s, 成绩: %.2f\n", 
-                   students[i].id, students[i].name, students[i].age, students[i].major, students[i].score);
-            return;
-        }
-    }
-    printf("未找到学生ID为%d的记录。\n", searchId);
-}
-
-// 更新学生信息
-void updateStudent(struct Student students[], int count) {
-    if (count == 0) {
-        printf("没有学生记录可供更新。\n");
-        return;
-    }
-    int updateId;
-    printf("请输入要更新的学生ID: ");
-    scanf("%d", &updateId);
-    for (int i = 0; i < count; i++) {
-        if (students[i].id == updateId) {
-            printf("请输入新的姓名: ");
-            scanf("%s", students[i].name);
-            printf("请输入新的年龄: ");
-            scanf("%d", &students[i].age);
-            printf("请输入新的专业: ");
-            scanf("%s", students[i].major);
-            printf("请输入新的成绩: ");
-            scanf("%f", &students[i].score);
-            printf("学生信息已更新。\n");
-            return;
-        }
-    }
-    printf("未找到学生ID为%d的记录。\n", updateId);
-}
-
-// 删除学生
-void deleteStudent(struct Student students[], int *count) {
-    if (*count == 0) {
-        printf("没有学生记录可供删除。\n");
-        return;
-    }
-    int deleteId;
-    printf("请输入要删除的学生ID: ");
-    scanf("%d", &deleteId);
-    for (int i = 0; i < *count; i++) {
-        if (students[i].id == deleteId) {
-            for (int j = i; j < *count - 1; j++) {
-                students[j] = students[j + 1];
-            }
-            (*count)--;
-            printf("学生记录已删除。\n");
-            return;
-        }
-    }
-    printf("未找到学生ID为%d的记录。\n", deleteId);
-}
+void display(void);
+void load(STU stu[], int *nPtr);
+void save(STU stu[], int n);
+void sort(STU stu[], int n);
+void add(STU stu[], int *nPtr);
+void del(STU stu[], int *nPtr);
+void edit(STU stu[], int n);
+void DeleteAll(STU stu[], int *nPtr);
+int FindByNum(STU stu[], int n, char *str);
+void output(STU stu[], int n);
+void PrintRecord(STU *sPtr);
 
 int main() {
-    system("chcp 65001");  // 显示utf-8
-    struct Student students[MAX_STUDENTS];
-    int count = 0;
-    char filename[] = "students.dat";
-
-    // 程序启动时自动加载文件
-    autoLoadFromFile(students, &count, filename);
-
+    system("chcp 65001");  // Set console to UTF-8 for Windows
+    STU stu[N];  
+    int n = 0;   
     int choice;
-    do {
-        printf("\n学生档案管理系统:\n");
-        printf("1. 增加学生\n");
-        printf("2. 显示学生\n");
-        printf("5. 查找学生\n");
-        printf("6. 更新学生信息\n");
-        printf("7. 删除学生\n");
-        printf("0. 退出\n");
-        printf("请选择操作: ");
+
+    while (1) {
+        display();
+        printf("请选择功能(0退出): ");
         scanf("%d", &choice);
 
         switch (choice) {
-            case 1: addStudent(students, &count); break;
-            case 2: displayStudents(students, count); break;
-            case 5: searchStudent(students, count); break;
-            case 6: updateStudent(students, count); break;
-            case 7: deleteStudent(students, &count); break;
-            case 0: break;
-            default: printf("无效的选择，请重新选择。\n");
+            case 1: load(stu, &n); break;
+            case 2: add(stu, &n); save(stu, n); break;  // Save after adding
+            case 3: del(stu, &n); save(stu, n); break;  // Save after deletion
+            case 4: DeleteAll(stu, &n); save(stu, n); break;  // Save after deleting all
+            case 5: edit(stu, n); save(stu, n); break;  // Save after editing
+            case 6: {
+                char num[ID_LENGTH + 1];
+                printf("输入要查找的学号: ");
+                scanf("%s", num);
+                int index = FindByNum(stu, n, num);
+                if (index != -1) {
+                    PrintRecord(&stu[index]);
+                } else {
+                    printf("未找到该学号的记录!\n");
+                }
+                break;
+            }
+            case 7: sort(stu, n); break;
+            case 8: output(stu, n); break;
+            case 9: save(stu, n); break;
+            case 0: printf("系统已退出。\n"); exit(0);
+            default: printf("无效选择，请重新输入!\n");
         }
-        
-        // 操作后自动保存
-        autoSaveToFile(students, count, filename);
-    } while(choice != 0);
-
+    }
     return 0;
+}
+
+void display(void) {
+    printf("\n====== 学生信息管理系统 ======\n");
+    printf("1. 从文件加载数据\n");
+    printf("2. 添加学生记录\n");
+    printf("3. 删除单个学生记录\n");
+    printf("4. 删除所有学生记录\n");
+    printf("5. 修改学生记录\n");
+    printf("6. 查找学生记录\n");
+    printf("7. 按总分降序排序\n");
+    printf("8. 显示所有学生记录\n");
+    printf("9. 保存数据到文件\n");
+    printf("0. 退出系统\n");
+    printf("=================================\n");
+}
+
+void load(STU stu[], int *nPtr) {
+    FILE *fp = fopen("student.txt", "rb");  // Open in binary mode
+    if (!fp) {
+        printf("文件不存在或无法打开!\n");
+        return;
+    }
+    *nPtr = fread(stu, sizeof(STU), N, fp);
+    fclose(fp);
+    printf("数据已加载，共有%d条记录。\n", *nPtr);
+}
+
+void save(STU stu[], int n) {
+    FILE *fp = fopen("student.txt", "wb");  // Write in binary mode
+    if (!fp) {
+        printf("无法保存数据!\n");
+        return;
+    }
+    fwrite(stu, sizeof(STU), n, fp);
+    fclose(fp);
+    printf("数据已保存，共有%d条记录。\n", n);
+}
+
+void add(STU stu[], int *nPtr) {
+    STU temp;
+    char id[ID_LENGTH + 1];
+
+    printf("输入学号(%d位纯数字): ", ID_LENGTH);
+    scanf("%s", id);
+
+    if (!isValidID(id)) {
+        printf("学号必须是%d位纯数字!\n", ID_LENGTH);
+        return;
+    }
+
+    strcpy(temp.ID, id);
+
+    if (FindByNum(stu, *nPtr, temp.ID) != -1) {
+        printf("学号已存在，无法重复添加!\n");
+        return;
+    }
+
+    printf("输入姓名: ");
+    scanf("%s", temp.name);
+    
+    do {
+        printf("输入性别(M/F): ");
+        scanf(" %c", &temp.sex);
+        if (temp.sex != 'M' && temp.sex != 'F') {
+            printf("性别只能是M或F!\n");
+        }
+    } while (temp.sex != 'M' && temp.sex != 'F');
+
+    printf("输入五门课成绩: ");
+    temp.total = 0;
+    for (int i = 0; i < 5; i++) {
+        scanf("%lf", &temp.score[i]);
+        temp.total += temp.score[i];
+    }
+    temp.avg = temp.total / 5.0;
+
+    stu[(*nPtr)++] = temp;
+    printf("记录已添加!\n");
+}
+
+void del(STU stu[], int *nPtr) {
+    char num[ID_LENGTH + 1];
+    printf("输入要删除的学号: ");
+    scanf("%s", num);
+    int index = FindByNum(stu, *nPtr, num);
+
+    if (index == -1) {
+        printf("未找到该学号的记录!\n");
+        return;
+    }
+
+    for (int i = index; i < *nPtr - 1; i++) {
+        stu[i] = stu[i + 1];
+    }
+    (*nPtr)--;
+    printf("记录已删除!\n");
+}
+
+void DeleteAll(STU stu[], int *nPtr) {
+    *nPtr = 0;
+    printf("所有记录已删除!\n");
+}
+
+void edit(STU stu[], int n) {
+    char num[ID_LENGTH + 1];
+    printf("输入要修改的学号: ");
+    scanf("%s", num);
+    int index = FindByNum(stu, n, num);
+
+    if (index == -1) {
+        printf("未找到该学号的记录!\n");
+        return;
+    }
+
+    printf("输入新姓名: ");
+    scanf("%s", stu[index].name);
+    
+    do {
+        printf("输入新性别(M/F): ");
+        scanf(" %c", &stu[index].sex);
+        if (stu[index].sex != 'M' && stu[index].sex != 'F') {
+            printf("性别只能是M或F!\n");
+        }
+    } while (stu[index].sex != 'M' && stu[index].sex != 'F');
+
+    printf("输入五门新成绩: ");
+    stu[index].total = 0;
+    for (int i = 0; i < 5; i++) {
+        scanf("%lf", &stu[index].score[i]);
+        stu[index].total += stu[index].score[i];
+    }
+    stu[index].avg = stu[index].total / 5.0;
+    printf("记录已修改!\n");
+}
+
+int FindByNum(STU stu[], int n, char *str) {
+    for (int i = 0; i < n; i++) {
+        if (strcmp(stu[i].ID, str) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+void PrintRecord(STU *sPtr) {
+    printf("学号:%s 姓名:%s 性别:%c 总分:%.2lf 平均分:%.2lf\n", sPtr->ID, sPtr->name, sPtr->sex, sPtr->total, sPtr->avg);
+}
+
+void output(STU stu[], int n) {
+    if (n == 0) {
+        printf("当前没有记录!\n");
+        return;
+    }
+    printf("%-20s %-20s %-10s %-10s %-10s\n", "学号", "姓名", "性别", "总分", "平均分");
+    for (int i = 0; i < n; i++) {
+        printf("%-20s %-20s %-10c %-10.2lf %-10.2lf\n", stu[i].ID, stu[i].name, stu[i].sex, stu[i].total, stu[i].avg);
+    }
+}
+
+void sort(STU stu[], int n) {
+    STU temp;
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
+            if (stu[i].total < stu[j].total) {
+                temp = stu[i];
+                stu[i] = stu[j];
+                stu[j] = temp;
+            }
+        }
+    }
+    printf("记录已按总分降序排序!\n");
 }
